@@ -1,0 +1,78 @@
+﻿@page "/weather"
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Weather</PageTitle>
+
+<h1>Weather</h1>
+
+<div>
+    <label for="selectedDate">Selecciona una fecha:</label> <!-- Etiqueta para el campo de selección de fecha -->
+
+    <input type="date" id="selectedDate" @bind="selectedDate" /> <!-- Campo de entrada para seleccionar una fecha, vinculado a la variable 'selectedDate' -->
+    <input type="number" id="numberOfDays" @bind="numberOfDays" min="1" max="30" /> <!-- Campo de entrada para especificar el número de días, vinculado a la variable 'numberOfDays' -->
+
+    <button @onclick="LoadForecasts">Cargar Previsiones</button> <!-- Botón para cargar las previsiones, vinculado al método 'LoadForecasts' -->
+</div>
+
+@if (forecasts == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Resumen</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private WeatherForecast[]? forecasts;
+    private DateOnly selectedDate = DateOnly.FromDateTime(DateTime.Now);
+    private int numberOfDays = 7;  // Número de días para los cuales se cargarán las previsiones
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadForecasts();
+    }
+
+    private async Task LoadForecasts()
+    {
+        // Simula la carga asincrónica para demostrar el streaming rendering
+        await Task.Delay(500);
+
+        var summaries = new[] { "Helado", "Fresco", "Fresco", "Agradable", "Moderado", "Cálido", "Agradable", "Caluroso", "Bochornoso", "Abrasador" };
+        forecasts = Enumerable.Range(0, numberOfDays).Select(index => new WeatherForecast
+            {
+                Date = selectedDate.AddDays(index).ToDateTime(TimeOnly.MinValue),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = summaries[Random.Shared.Next(summaries.Length)]
+            }).ToArray();
+    }
+
+    private class WeatherForecast
+    {
+        public DateTime Date { get; set; }
+        public int TemperatureC { get; set; }
+        public string? Summary { get; set; }
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
+}
